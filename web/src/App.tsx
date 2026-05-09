@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import IntroScreen from './app/(auth)/intro';
 import LoginScreen from './app/(auth)/login';
@@ -14,9 +15,22 @@ import AdminDashboard from './app/(app)/admin';
 import ChangePasswordScreen from './app/(app)/change-password';
 import NotificationsScreen from './app/(app)/notifications';
 import LocalVaultScreen from './app/(app)/local-vault';
+import { useAuthStore } from './modules/auth/useAuthStore';
 import './index.css';
 
 function App() {
+  const refreshProfile = useAuthStore((state) => state.refreshProfile);
+
+  useEffect(() => {
+    // Listen for auth tokens from the desktop shell (Deep Linking)
+    if (window.electronAPI && window.electronAPI.onAuthToken) {
+      window.electronAPI.onAuthToken((token: string) => {
+        console.log('[DeepLink] Received token from shell');
+        refreshProfile(token);
+      });
+    }
+  }, [refreshProfile]);
+
   return (
     <BrowserRouter>
       <Routes>

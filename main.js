@@ -5,6 +5,52 @@ const isDev = process.env.NODE_ENV === 'development';
 
 const { initEngine, ingestFile, queryHenry } = require('./engine');
 
+// Register the custom protocol
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('nedai', process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  app.setAsDefaultProtocolClient('nedai');
+}
+
+let mainWindow;
+let pendingToken = null;
+
+function handleDeepLink(url) {
+  const parsedUrl = new URL(url);
+  if (parsedUrl.protocol === 'nedai:' && parsedUrl.hostname === 'auth') {
+    const token = parsedUrl.searchParams.get('token');
+    if (token) {
+      if (mainWindow) {
+        mainWindow.webContents.send('auth-token', token);
+      } else {
+        pendingToken = token;
+      }
+    }
+  }
+}
+
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+    
+    // On Windows, the deep link URL is passed in the command line
+    const url = commandLine.pop();
+    if (url.startsWith('nedai://')) {
+      handleDeepLink(url);
+    }
+  });
+}
+
 // Bootstrapper: Ensure local models are ready
 async function bootstrapModels(window) {
   return new Promise((resolve) => {
@@ -45,7 +91,7 @@ async function bootstrapModels(window) {
 }
 
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
@@ -73,6 +119,14 @@ function createWindow() {
     // In production, load the built files
     mainWindow.loadFile(path.join(__dirname, 'web/dist/index.html'));
   }
+
+  // If we have a pending token from launch, send it once ready
+  mainWindow.webContents.on('did-finish-load', () => {
+    if (pendingToken) {
+      mainWindow.webContents.send('auth-token', pendingToken);
+      pendingToken = null;
+    }
+  });
 }
 
 app.whenReady().then(() => {
@@ -80,6 +134,12 @@ app.whenReady().then(() => {
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+
+  // Handle deep link on macOS
+  app.on('open-url', (event, url) => {
+    event.preventDefault();
+    handleDeepLink(url);
   });
 });
 
