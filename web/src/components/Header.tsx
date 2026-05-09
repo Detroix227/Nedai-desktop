@@ -1,4 +1,4 @@
-import { History, Sparkles } from "lucide-react";
+import { History } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/modules/auth/useAuthStore";
 
