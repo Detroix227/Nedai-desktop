@@ -1,4 +1,3 @@
-import { Sparkles } from "lucide-react";
 import React, {
   useEffect,
   useMemo,
@@ -389,7 +388,7 @@ export default function HomeScreen() {
             <div className="h-full flex flex-col items-center justify-center px-4">
               <div className="w-[120px] h-[120px] rounded-full bg-white dark:bg-slate-800 shadow-xl shadow-blue-500/10 flex items-center justify-center mb-8 border border-slate-50 dark:border-slate-700">
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-full">
-                  <img src="/nedai-symbol.png" alt="NedAI" className="w-16 h-16 object-contain scale-125" />
+                  <img src="/nedai-symbol-v2.png" alt="NedAI" className="w-16 h-16 object-contain scale-125" />
                 </div>
               </div>
               <h2 className="text-[28px] font-bold text-slate-800 dark:text-slate-100 text-center mb-8 max-w-sm leading-tight">

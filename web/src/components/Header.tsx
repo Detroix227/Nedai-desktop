@@ -20,9 +20,6 @@ export function Header({
   return (
     <header className="flex flex-row items-center justify-between px-4 pt-4 pb-4 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
       <div className="flex flex-row items-center shrink-1">
-        <div className="hidden sm:flex w-10 h-10 rounded-2xl items-center justify-center mr-3 bg-blue-100">
-          <Sparkles size={18} className="text-blue-700" strokeWidth={2.2} />
-        </div>
         <div>
           <span className="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400 block">
             NedAI Workspace
