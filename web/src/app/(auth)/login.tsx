@@ -28,9 +28,9 @@ export default function LoginScreen() {
           <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full animate-pulse" />
           <div className="relative h-24 w-24 mx-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl flex items-center justify-center border border-slate-100 dark:border-slate-800 p-4">
              <img 
-                src="/nedai-logo.png" 
+                src="/nedai-text-logo.png" 
                 alt="NedAI Logo" 
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain scale-125"
               />
           </div>
         </div>

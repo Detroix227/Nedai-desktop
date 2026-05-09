@@ -19,10 +19,12 @@ interface LocalVaultState {
 
 export const useLocalVaultStore = create<LocalVaultState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       documents: [],
       isIndexing: false,
       addDocument: async (path: string, name: string) => {
+        // NOTE: Standard <input type="file"> doesn't give the full path for security.
+        // We use window.electronAPI.openFileDialog instead.
         const id = Math.random().toString(36).substring(7);
         const newDoc: LocalDocument = {
           id,

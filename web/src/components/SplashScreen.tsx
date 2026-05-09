@@ -6,9 +6,9 @@ export function SplashScreen() {
       <div className="flex flex-col items-center mb-24">
         <div className="w-40 h-40 bg-[#0F1E21] rounded-3xl p-5 flex justify-center items-center mb-6 shadow-xl shadow-slate-200">
           <img 
-            src="/nedai-logo.png" 
+            src="/nedai-symbol.png" 
             alt="NedAI Logo" 
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain scale-125"
           />
         </div>
 

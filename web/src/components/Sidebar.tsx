@@ -193,15 +193,18 @@ export function Sidebar() {
           <aside className="w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-[100dvh] fixed lg:sticky top-0 left-0 z-50 shrink-0 overflow-hidden shadow-2xl lg:shadow-none transition-transform">
           {/* Header - Fixed */}
           <div className="px-4 pt-4 pb-4 shrink-0">
-            {/* Top Bar: Hamburger + Notification */}
-            <div className="flex justify-between items-center mb-4">
+            {/* Logo and Menu Header */}
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <img src="/nedai-symbol.png" alt="NedAI" className="w-8 h-8 object-contain" />
+                <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">NedAI</span>
+              </div>
               <button
                 onClick={toggleSidebar}
-                className="p-2 rounded-xl hover:bg-slate-100 transition"
+                className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
               >
-                <Menu size={24} className="text-slate-600 dark:text-slate-400" strokeWidth={2} />
+                <Menu size={20} className="text-slate-600 dark:text-slate-400" strokeWidth={2} />
               </button>
-              <NotificationBell />
             </div>
             
             

@@ -1,28 +1,10 @@
-import { useRef } from "react";
 import { FileText, Trash2, FileUp, Cpu, HardDrive, Info } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useLocalVaultStore } from "@/modules/documents/useLocalVaultStore";
 
 export default function LocalVaultScreen() {
   const { documents, isIndexing, addDocument, removeDocument } = useLocalVaultStore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Electron gives us the real path if configured correctly in preload
-    // For now, we'll assume the path is available or we'll need a dialog
-    // In a real Electron app, we'd use a native dialog to get the path.
-    // Since we're in the browser-view, we'll try to get the path if exposed.
-    
-    // NOTE: Standard <input type="file"> doesn't give the full path for security.
-    // We should ideally use window.electronAPI to open a real file dialog.
-    // Let's check if we have a 'selectFile' method in electronAPI.
-    
-    alert("On Desktop, please use the 'Select File' button to index documents into Henry's brain.");
-    event.target.value = '';
-  }
 
   const triggerLocalPicker = async () => {
     // This requires adding 'openFileDialog' to preload.js
