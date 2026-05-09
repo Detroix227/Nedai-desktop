@@ -20,6 +20,9 @@ export function Header({
   return (
     <header className="flex flex-row items-center justify-between px-4 pt-4 pb-4 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
       <div className="flex flex-row items-center shrink-1">
+        <div className="flex items-center justify-center mr-3">
+          <img src="/nedai-text-logo.png" alt="NedAI" className="h-8 object-contain" />
+        </div>
         <div>
           <span className="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400 block">
             NedAI Workspace

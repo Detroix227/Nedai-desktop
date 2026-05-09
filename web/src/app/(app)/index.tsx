@@ -385,11 +385,8 @@ export default function HomeScreen() {
               </span>
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center px-4">
-              <div className="w-[120px] h-[120px] rounded-full bg-white dark:bg-slate-800 shadow-xl shadow-blue-500/10 flex items-center justify-center mb-8 border border-slate-50 dark:border-slate-700">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-full">
-                  <img src="/nedai-symbol-v2.png" alt="NedAI" className="w-16 h-16 object-contain scale-125" />
-                </div>
+              <div className="mb-10 px-10 py-6 bg-white dark:bg-slate-800 rounded-[2rem] shadow-xl shadow-blue-500/5 border border-slate-50 dark:border-slate-800 flex items-center justify-center">
+                <img src="/nedai-text-logo.png" alt="NedAI" className="w-48 h-auto object-contain" />
               </div>
               <h2 className="text-[28px] font-bold text-slate-800 dark:text-slate-100 text-center mb-8 max-w-sm leading-tight">
                 What would you like to work on today?
