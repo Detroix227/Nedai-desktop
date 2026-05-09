@@ -385,6 +385,7 @@ export default function HomeScreen() {
               </span>
             </div>
           ) : (
+            <div className="h-full flex flex-col items-center justify-center px-4">
               <div className="mb-10 px-10 py-6 bg-white dark:bg-slate-800 rounded-[2rem] shadow-xl shadow-blue-500/5 border border-slate-50 dark:border-slate-800 flex items-center justify-center">
                 <img src="/nedai-text-logo.png" alt="NedAI" className="w-48 h-auto object-contain" />
               </div>
