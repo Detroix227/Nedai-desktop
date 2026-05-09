@@ -1,0 +1,23 @@
+app = "nedai-desktop-server"
+primary_region = "ams" # You can change this to your preferred region
+
+[deploy]
+  release_command = "bunx prisma migrate deploy"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[env]
+  PORT = "3000"
+  EMBEDDING_PROVIDER = "local"
+  APP_URL = "https://nedai-desktop-server.fly.dev"

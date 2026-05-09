@@ -1,0 +1,12 @@
+node_modules
+.git
+.env
+dist
+.vscode
+.antigravity
+ts-errors.log
+errors.txt
+bun.lock (not really, but good practice to keep it outside if using COPY)
+README.md
+CODING_STYLE_BACKEND.md
+nedai-server-v1-plan.md
