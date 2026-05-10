@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { ExternalLink, UserPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useUIStore } from "@/modules/ui/useUIStore";
 
 export default function SignupScreen() {
   const theme = useUIStore((state) => state.theme);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -41,7 +43,7 @@ export default function SignupScreen() {
         </button>
 
         <p className="mt-8 text-sm text-slate-400 dark:text-slate-600">
-          Already have an account? <span className="text-blue-500 font-bold cursor-pointer hover:underline" onClick={() => window.history.back()}>Log in.</span>
+          Already have an account? <span className="text-blue-500 font-bold cursor-pointer hover:underline" onClick={() => navigate('/login')}>Log in.</span>
         </p>
       </div>
     </main>

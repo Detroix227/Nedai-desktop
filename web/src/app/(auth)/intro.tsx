@@ -1,4 +1,4 @@
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { Sparkles, BrainCircuit, CalendarDays, GraduationCap, ChevronRight, Sun, Moon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useAuthStore } from '@/modules/auth/useAuthStore';
@@ -28,7 +28,7 @@ export default function IntroScreen() {
         <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
-              src="/nedai-logo.png" 
+              src="nedai-symbol.png" 
               alt="NedAI Logo" 
               className="w-10 h-10 object-contain"
             />
@@ -48,18 +48,18 @@ export default function IntroScreen() {
               )}
             </button>
             
-            <Link 
-              to="/login" 
+            <button 
+              onClick={() => window.open('https://nedai.app/login?redirect=desktop', '_blank')}
               className="text-slate-600 dark:text-slate-300 font-semibold hover:text-slate-900 dark:hover:text-white transition px-4 py-2"
             >
               Sign In
-            </Link>
-            <Link 
-              to="/signup" 
+            </button>
+            <button 
+              onClick={() => window.open('https://nedai.app/signup?redirect=desktop', '_blank')}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-full transition shadow-sm"
             >
               Sign Up
-            </Link>
+            </button>
           </div>
         </div>
       </nav>
@@ -75,12 +75,12 @@ export default function IntroScreen() {
           <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed mb-12 font-medium">
             Your personal AI-powered academic assistant. Automate your schedule, store your knowledge, and study smarter.
           </p>
-          <Link 
-            to="/signup" 
+          <button 
+            onClick={() => window.open('https://nedai.app/signup?redirect=desktop', '_blank')}
             className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-bold px-8 py-4 rounded-full flex items-center gap-2 transition transform hover:scale-105 shadow-xl text-lg"
           >
             Get Started for Free <ChevronRight size={20} strokeWidth={3} />
-          </Link>
+          </button>
         </section>
 
         {/* Detailed Sections */}
@@ -146,12 +146,12 @@ export default function IntroScreen() {
         {/* Footer CTA */}
         <section className="bg-slate-50 dark:bg-slate-950 py-32 text-center px-6">
           <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-8 tracking-tight">Ready to upgrade your workflow?</h2>
-          <Link 
-            to="/signup" 
+          <button 
+            onClick={() => window.open('https://nedai.app/signup?redirect=desktop', '_blank')}
             className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold px-10 py-5 rounded-full transition transform hover:scale-105 shadow-xl text-xl"
           >
             Create Your Free Account
-          </Link>
+          </button>
         </section>
         
         {/* Footer */}

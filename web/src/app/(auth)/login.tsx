@@ -1,9 +1,11 @@
 import { useEffect } from "react";
-import { ExternalLink, ShieldCheck, Cpu, Globe } from "lucide-react";
+import { ExternalLink, ShieldCheck, Cpu, Globe, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useUIStore } from "@/modules/ui/useUIStore";
 
 export default function LoginScreen() {
   const theme = useUIStore((state) => state.theme);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -16,19 +18,28 @@ export default function LoginScreen() {
   const handleBrowserLogin = () => {
     // This will open the default system browser
     // In a real production app, we'd use the actual URL
-    const productionUrl = "https://nedai-web.vercel.app/login?redirect=desktop";
+    const productionUrl = "https://nedai.app/login?redirect=desktop";
     window.open(productionUrl, '_blank');
   };
 
   return (
-    <main className="flex-1 bg-white dark:bg-slate-950 min-h-screen flex flex-col items-center justify-center p-6 transition-colors duration-300">
+    <main className="flex-1 bg-white dark:bg-slate-950 min-h-screen flex flex-col items-center justify-center p-6 transition-colors duration-300 relative">
+      {/* Back Button */}
+      <button 
+        onClick={() => navigate('/')}
+        className="absolute top-8 left-8 flex items-center gap-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors group"
+      >
+        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+        <span className="font-bold text-sm uppercase tracking-widest">Back</span>
+      </button>
+
       <div className="max-w-md w-full text-center">
         {/* Logo Animation Container */}
         <div className="relative mb-8 inline-block">
           <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full animate-pulse" />
           <div className="relative h-24 w-24 mx-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl flex items-center justify-center border border-slate-100 dark:border-slate-800 p-4">
              <img 
-                src="/nedai-text-logo.png" 
+                src="nedai-text-logo.png" 
                 alt="NedAI Logo" 
                 className="w-full h-full object-contain scale-125"
               />

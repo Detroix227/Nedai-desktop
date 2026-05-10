@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import IntroScreen from './app/(auth)/intro';
 import LoginScreen from './app/(auth)/login';
 import SignupScreen from './app/(auth)/signup';
@@ -32,7 +32,7 @@ function App() {
   }, [refreshProfile]);
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         {/* Public Route */}
         <Route path="/" element={<IntroScreen />} />
@@ -55,9 +55,9 @@ function App() {
         </Route>
 
         {/* Catch-all: any unknown path → /intro */}
-        <Route path="*" element={<Navigate to="/intro" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

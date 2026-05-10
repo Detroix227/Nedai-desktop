@@ -118,7 +118,16 @@ function createWindow() {
   } else {
     // In production, load the built files
     mainWindow.loadFile(path.join(__dirname, 'web/dist/index.html'));
+    mainWindow.webContents.openDevTools();
   }
+
+  // Ensure external links open in the default browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('https:')) {
+      require('electron').shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
 
   // If we have a pending token from launch, send it once ready
   mainWindow.webContents.on('did-finish-load', () => {
