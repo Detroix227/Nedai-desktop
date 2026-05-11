@@ -33,6 +33,8 @@ type PersistedAuthStore = Pick<
 
 type AuthStore = AuthState & {
   bootstrapped: boolean;
+  bootstrapStatus: string;
+  bootstrapProgress: number;
   status: AuthStoreStatus;
   errorMessage: string | null;
   bootstrapSession: () => Promise<void>;

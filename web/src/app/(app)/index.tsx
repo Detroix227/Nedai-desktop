@@ -88,6 +88,8 @@ export default function HomeScreen() {
   const loadChats = useChatStore((state) => state.loadChats);
   const sendMessage = useChatStore((state) => state.sendMessage);
   
+  const documents = useDocumentStore((state) => state.documents);
+  const loadDocuments = useDocumentStore((state) => state.loadDocuments);
   const uploadDocument = useDocumentStore((state) => state.uploadDocument);
   const brainMode = useChatStore((state) => state.brainMode);
   const toggleBrainMode = useChatStore((state) => state.toggleBrainMode);
@@ -199,7 +201,7 @@ export default function HomeScreen() {
     }
 
     const nextDocument =
-      documents.find((document) => document.id === selectedDocument.id) ?? null;
+      documents.find((doc: DocumentSummary) => doc.id === selectedDocument.id) ?? null;
 
     if (!nextDocument) {
       setSelectedDocument(null);
