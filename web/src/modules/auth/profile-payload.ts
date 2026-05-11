@@ -13,7 +13,7 @@ export type UpdateProfilePayload = Partial<{
   futureCareer: string | null;
 }>;
 
-type UserRole = "STUDENT" | "LECTURER" | "ADMIN";
+type UserRole = "STUDENT" | "LECTURER" | "ADMIN" | "OTHER";
 
 export function buildProfileUpdatePayload(
   role: UserRole,

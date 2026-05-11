@@ -16,7 +16,7 @@ type LoginCredentials = {
 
 type SignupCredentials = LoginCredentials & {
   fullName: string;
-  role: "STUDENT" | "LECTURER";
+  role: "STUDENT" | "LECTURER" | "OTHER";
 };
 
 type ChangePasswordPayload = {

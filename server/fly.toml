@@ -1,4 +1,4 @@
-app = "nedai-desktop-server"
+app = "nedai-desktop-v3-dev"
 primary_region = "ams" # You can change this to your preferred region
 
 [deploy]

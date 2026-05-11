@@ -10,7 +10,7 @@ export type ApiErrorPayload = {
   data?: Record<string, unknown> | unknown[];
 };
 
-export type UserRole = "STUDENT" | "LECTURER" | "ADMIN";
+export type UserRole = "STUDENT" | "LECTURER" | "ADMIN" | "OTHER";
 
 export type ProfileCompletion = {
   isComplete: boolean;

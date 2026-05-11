@@ -14,7 +14,7 @@ type LoginPayload = {
 
 type RegisterPayload = LoginPayload & {
   fullName: string;
-  role: "STUDENT" | "LECTURER";
+  role: "STUDENT" | "LECTURER" | "OTHER";
 };
 
 type ChangePasswordPayload = {
