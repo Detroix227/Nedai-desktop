@@ -46,6 +46,8 @@ type AuthStore = AuthState & {
   clearError: () => void;
   markHydrated: () => void;
   markBootstrapped: () => void;
+  setBootstrapStatus: (status: string) => void;
+  setBootstrapProgress: (progress: number) => void;
 };
 
 function buildAuthErrorMessage(error: unknown) {
@@ -107,10 +109,27 @@ export const useAuthStore = create<AuthStore>()(
       accessToken: null,
       hydrated: false,
       bootstrapped: false,
+      bootstrapStatus: "initializing",
+      bootstrapProgress: 0,
       isAuthenticated: false,
       status: "idle",
       errorMessage: null,
       bootstrapSession: async () => {
+        // Listen for desktop bootstrap events
+        if (typeof window !== 'undefined' && (window as any).electronAPI) {
+          (window as any).electronAPI.onBootstrapStatus((status: string) => {
+            console.log('[Desktop] Bootstrap status:', status);
+            set({ bootstrapStatus: status });
+            if (status === 'ready') {
+              set({ bootstrapped: true });
+            }
+          });
+
+          (window as any).electronAPI.onBootstrapProgress((progress: number) => {
+            set({ bootstrapProgress: progress });
+          });
+        }
+
         const token = get().accessToken;
 
         if (!token) {
@@ -306,6 +325,8 @@ export const useAuthStore = create<AuthStore>()(
       clearError: () => set({ errorMessage: null, status: "idle" }),
       markHydrated: () => set({ hydrated: true }),
       markBootstrapped: () => set({ bootstrapped: true }),
+      setBootstrapStatus: (status: string) => set({ bootstrapStatus: status }),
+      setBootstrapProgress: (progress: number) => set({ bootstrapProgress: progress }),
     }),
     {
       name: "nedai-auth-store",

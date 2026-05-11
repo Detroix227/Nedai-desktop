@@ -40,6 +40,8 @@ type ChatStore = {
   clearError: () => void;
   reset: () => void;
   markHydrated: () => void;
+  brainMode: 'cloud' | 'local';
+  toggleBrainMode: () => void;
 };
 
 function sortThreads(threads: ChatThread[]) {
@@ -147,6 +149,10 @@ export const useChatStore = create<ChatStore>()(
       messagesByChatId: {},
       loadedChatIds: [],
       contextUsageByChatId: {},
+      brainMode: 'cloud',
+      toggleBrainMode: () => set((state) => ({ 
+        brainMode: state.brainMode === 'cloud' ? 'local' : 'cloud' 
+      })),
       loadChats: async () => {
         set({
           status: "loading",
@@ -312,9 +318,10 @@ export const useChatStore = create<ChatStore>()(
           let realAssistantMessageId: string | null = null;
           let streamingContent = "";
           const isOnline = useConnectivityStore.getState().isOnline;
+          const brainMode = get().brainMode;
 
           // --- OFFLINE / LOCAL PIVOT (Desktop Only) ---
-          if (!isOnline && window.electronAPI) {
+          if ((brainMode === 'local' || !isOnline) && window.electronAPI) {
             await streamLocalMessage(
               { content: trimmed },
               (event) => {
