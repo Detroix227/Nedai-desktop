@@ -21,6 +21,7 @@ COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
 # Generate Prisma client
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN bunx prisma generate
 
 # Final image
