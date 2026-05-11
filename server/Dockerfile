@@ -6,11 +6,13 @@ WORKDIR /usr/src/app
 FROM base AS install
 RUN mkdir -p /temp/dev
 COPY package.json bun.lock /temp/dev/
+COPY prisma /temp/dev/prisma
 RUN cd /temp/dev && bun install --frozen-lockfile
 
 # Install with --production (exclude devDependencies)
 RUN mkdir -p /temp/prod
 COPY package.json bun.lock /temp/prod/
+COPY prisma /temp/prod/prisma
 RUN cd /temp/prod && bun install --frozen-lockfile --production
 
 # Build the app
