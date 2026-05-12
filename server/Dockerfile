@@ -31,9 +31,10 @@ COPY --from=build /usr/src/app/src src
 COPY --from=build /usr/src/app/prisma prisma
 COPY --from=build /usr/src/app/package.json .
 COPY --from=build /usr/src/app/tsconfig.json .
+COPY --from=build /usr/src/app/prisma.config.ts .
 
 # Expose port
 EXPOSE 3000
 
 # Start the server
-ENTRYPOINT [ "bun", "run", "src/server.ts" ]
+CMD ["bun", "run", "src/server.ts"]

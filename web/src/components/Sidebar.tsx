@@ -196,7 +196,7 @@ export function Sidebar() {
             {/* Logo and Menu Header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
-                <img src="/nedai-symbol.png" alt="NedAI" className="w-8 h-8 object-contain" />
+                <img src="/nedai-symbol-v3.png" alt="NedAI" className="w-8 h-8 object-contain" />
                 <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">NedAI</span>
               </div>
               <button

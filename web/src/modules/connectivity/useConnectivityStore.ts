@@ -31,11 +31,9 @@ export const useConnectivityStore = create<ConnectivityState>((set) => ({
       
       set({ isOnline: response.ok, lastChecked: new Date(), isChecking: false });
     } catch (error) {
-      // 3. Fallback: If fetch fails but navigator says we're online, 
-      // it might just be a specific endpoint issue. On WEB, stay online.
-      // On DESKTOP, this might be a reason to switch to local.
-      const shouldBeOnline = typeof window !== 'undefined' && !!window.electronAPI ? false : true;
-      set({ isOnline: shouldBeOnline, lastChecked: new Date(), isChecking: false });
+      // 3. Fallback: If fetch fails but navigator says we're online,
+      // stay online — respect the user's brain mode toggle instead of auto-switching.
+      set({ isOnline: true, lastChecked: new Date(), isChecking: false });
     }
   },
 }));

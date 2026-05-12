@@ -14,6 +14,10 @@ app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
+app.get("/health", (c) => {
+  return c.json({ status: "ok" });
+});
+
 app.route("/api/v1", v1App);
 
 app.onError(errorHandler);
