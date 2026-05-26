@@ -21,12 +21,24 @@ export function AppShell({
     // Initial check
     void checkConnection();
 
+    // Instant offline/online event listeners
+    const handleConnectivityChange = () => {
+      void checkConnection();
+    };
+
+    window.addEventListener("online", handleConnectivityChange);
+    window.addEventListener("offline", handleConnectivityChange);
+
     // Set up 30-second heartbeat
     const interval = setInterval(() => {
       void checkConnection();
     }, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      window.removeEventListener("online", handleConnectivityChange);
+      window.removeEventListener("offline", handleConnectivityChange);
+      clearInterval(interval);
+    };
   }, [checkConnection]);
 
   return (
@@ -34,7 +46,7 @@ export function AppShell({
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden bg-white dark:bg-slate-900">
         <Header title={title} onHistory={onHistory} />
-        <div className="flex-1 overflow-y-auto relative bg-slate-50/30 dark:bg-slate-900/50">
+        <div className="flex-1 overflow-hidden relative bg-slate-50/30 dark:bg-slate-900/50">
           {children}
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { History } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/modules/auth/useAuthStore";
+import { useConnectivityStore } from "@/modules/connectivity/useConnectivityStore";
 
 export function Header({
   title,
@@ -13,6 +14,7 @@ export function Header({
   const user = useAuthStore((state) => state.user);
   const displayName = user?.fullName || user?.email || "NedAI User";
   const initials = displayName.slice(0, 1).toUpperCase();
+  const isOnline = useConnectivityStore((state) => state.isOnline);
   
   const handleProfileClick = () => {
     navigate("/profile");
@@ -49,18 +51,31 @@ export function Header({
           onClick={handleProfileClick}
           className="flex flex-row items-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl px-2 py-2 transition cursor-pointer"
         >
-          <div className="mr-3 h-10 w-10 flex shrink-0 items-center justify-center rounded-full bg-orange-100">
+          <div className="relative mr-3 h-10 w-10 flex shrink-0 items-center justify-center rounded-full bg-orange-100">
             <span className="text-sm font-bold text-orange-700">
               {initials}
             </span>
+            {/* Pulse Indicator */}
+            <span className={`absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-slate-900 ${
+              isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+            }`} />
           </div>
-          <div className="hidden md:flex flex-col">
+          <div className="hidden md:flex flex-col text-left">
             <span className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
               {displayName}
             </span>
-            <span className="text-xs text-slate-400 dark:text-slate-500 truncate">
-              {user?.email ?? "No active session"}
-            </span>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xs text-slate-400 dark:text-slate-500 truncate max-w-[120px]">
+                {user?.email ?? "No active session"}
+              </span>
+              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wide uppercase ${
+                isOnline 
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30' 
+                  : 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/30'
+              }`}>
+                {isOnline ? 'Online' : 'Offline'}
+              </span>
+            </div>
           </div>
         </button>
       </div>

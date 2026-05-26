@@ -12,8 +12,28 @@ import type {
 import { useSyncStore } from "@/modules/sync/useSyncStore";
 import { useConnectivityStore } from "@/modules/connectivity/useConnectivityStore";
 import { streamLocalMessage } from "@/modules/chat/chat.local.api";
+import * as ChatApiExtra from "@/modules/chat/chat.api";
 
 const EMPTY_ARRAY: any[] = [];
+
+// Holds the current stream's abort function. Stored outside the store to avoid serialization issues.
+let currentAbortFn: (() => void) | null = null;
+let resolveActiveSend: (() => void) | null = null;
+let pendingStopRestoreText: string | null = null;
+
+function removeLastUserAssistantExchange(messages: ChatMessage[]) {
+  const next = [...messages];
+
+  if (next.length > 0 && next[next.length - 1]?.role === "assistant") {
+    next.pop();
+  }
+
+  if (next.length > 0 && next[next.length - 1]?.role === "user") {
+    next.pop();
+  }
+
+  return next;
+}
 
 type PersistedChatStore = Partial<Pick<ChatStore, "activeThreadId">>;
 
@@ -32,6 +52,10 @@ type ChatStore = {
   selectThread: (threadId: string) => Promise<void>;
   startFreshChat: () => void;
   sendMessage: (payload: SendChatMessagePayload) => Promise<void>;
+  editMessage: (messageId: string, newContent: string) => Promise<void>;
+  stopGeneration: () => void;
+  composerRestoreText: string | null;
+  clearComposerRestore: () => void;
   clearChatHistory: () => Promise<void>;
   deleteChat: (chatId: string) => Promise<void>;
   renameChat: (chatId: string, title: string) => Promise<void>;
@@ -149,6 +173,8 @@ export const useChatStore = create<ChatStore>()(
       messagesByChatId: {},
       loadedChatIds: [],
       contextUsageByChatId: {},
+      composerRestoreText: null,
+      clearComposerRestore: () => set({ composerRestoreText: null }),
       brainMode: 'cloud',
       toggleBrainMode: () => set((state) => ({ 
         brainMode: state.brainMode === 'cloud' ? 'local' : 'cloud' 
@@ -262,6 +288,7 @@ export const useChatStore = create<ChatStore>()(
           return;
         }
 
+        pendingStopRestoreText = trimmed;
         const activeThreadId = get().activeThreadId;
         const optimisticChatId = activeThreadId ?? "__draft__";
         const timestamp = Date.now();
@@ -313,6 +340,7 @@ export const useChatStore = create<ChatStore>()(
         useSyncStore.getState().startSync();
 
         return new Promise<void>(async (resolve, reject) => {
+          resolveActiveSend = resolve;
           const token = requireAccessToken();
           let realChatId: string | null = null;
           let realAssistantMessageId: string | null = null;
@@ -322,7 +350,7 @@ export const useChatStore = create<ChatStore>()(
 
           // --- OFFLINE / LOCAL PIVOT (Desktop Only) ---
           if ((brainMode === 'local' || !isOnline) && window.electronAPI) {
-            await streamLocalMessage(
+            const abortLocal = await streamLocalMessage(
               { content: trimmed },
               (event) => {
                 if (event.type === "chunk") {
@@ -332,15 +360,22 @@ export const useChatStore = create<ChatStore>()(
                       m.id === optimisticAssistantMessage.id ? { ...m, content: streamingContent } : m
                     ),
                   }));
+                } else if (event.type === "done") {
+                  pendingStopRestoreText = null;
+                  set({ status: "idle", errorMessage: null });
+                  currentAbortFn = null;
+                  resolveActiveSend = null;
+                  useSyncStore.getState().markSynced();
+                  resolve();
                 }
-              },
-              () => resolve()
+              }
             );
+            currentAbortFn = abortLocal;
             return;
           }
 
           // --- CLOUD MODE (Web and Online Desktop) ---
-          ChatApi.streamMessage(
+          const abortCloud = ChatApi.streamMessage(
             token,
             {
               ...(activeThreadId ? { chatId: activeThreadId } : {}),
@@ -414,10 +449,14 @@ export const useChatStore = create<ChatStore>()(
                   },
                 }));
               } else if (event.type === "done") {
+                pendingStopRestoreText = null;
                 set({ status: "idle", errorMessage: null });
+                resolveActiveSend = null;
                 useSyncStore.getState().markSynced();
                 resolve();
               } else if (event.type === "error") {
+                pendingStopRestoreText = null;
+                resolveActiveSend = null;
                 reject(new Error(event.message || "Streaming failed"));
               }
             },
@@ -463,10 +502,189 @@ export const useChatStore = create<ChatStore>()(
                 };
               });
               useSyncStore.getState().markError(errorMessage);
+              pendingStopRestoreText = null;
+              resolveActiveSend = null;
               reject(error);
             },
           );
+          currentAbortFn = abortCloud;
         });
+      },
+      editMessage: async (messageId: string, newContent: string) => {
+        const token = requireAccessToken();
+        const activeThreadId = get().activeThreadId;
+        if (!activeThreadId) return;
+
+        const existingMessages = get().messagesByChatId[activeThreadId] ?? [];
+        // Find the index of the message being edited
+        const editedIdx = existingMessages.findIndex((m) => m.id === messageId);
+        if (editedIdx === -1) return;
+
+        const timestamp = Date.now();
+        // Immediately update the edited message text locally and prune later messages
+        const prunedMessages = existingMessages
+          .slice(0, editedIdx + 1)
+          .map((m) => (m.id === messageId ? { ...m, content: newContent } : m));
+
+        // Create optimistic assistant placeholder
+        const optimisticAssistantId = `temp-assistant-${timestamp}`;
+        const optimisticAssistant: import('@/modules/contracts').ChatMessage = {
+          id: optimisticAssistantId,
+          chatId: activeThreadId,
+          role: "assistant",
+          content: "",
+          createdAt: new Date(timestamp + 1).toISOString(),
+          deliveryState: "pending",
+        };
+
+        set((state) => ({
+          status: "sending" as const,
+          errorMessage: null,
+          messagesByChatId: {
+            ...state.messagesByChatId,
+            [activeThreadId]: [...prunedMessages, optimisticAssistant],
+          },
+        }));
+        useSyncStore.getState().startSync();
+
+        pendingStopRestoreText = newContent;
+
+        const isOnline = useConnectivityStore.getState().isOnline;
+        const brainMode = get().brainMode;
+
+        // LOCAL / OFFLINE path
+        if ((brainMode === 'local' || !isOnline) && window.electronAPI) {
+          return new Promise<void>(async (resolve) => {
+            resolveActiveSend = resolve;
+            let streamingContent = "";
+            const abortLocal = await streamLocalMessage(
+              { content: newContent },
+              (event) => {
+                if (event.type === "chunk") {
+                  streamingContent += event.content;
+                  set((state) => ({
+                    messagesByChatId: {
+                      ...state.messagesByChatId,
+                      [activeThreadId]: (state.messagesByChatId[activeThreadId] ?? []).map((m) =>
+                        m.id === optimisticAssistantId ? { ...m, content: streamingContent } : m
+                      ),
+                    },
+                  }));
+                } else if (event.type === "done") {
+                  pendingStopRestoreText = null;
+                  set({ status: "idle", errorMessage: null });
+                  currentAbortFn = null;
+                  resolveActiveSend = null;
+                  useSyncStore.getState().markSynced();
+                  resolve();
+                }
+              }
+            );
+            currentAbortFn = abortLocal;
+          });
+        }
+
+        // CLOUD path
+        return new Promise<void>((resolve, reject) => {
+          resolveActiveSend = resolve;
+          let realAssistantMessageId: string | null = null;
+          let streamingContent = "";
+
+          const abortCloud = ChatApiExtra.streamEditMessage(
+            token,
+            messageId,
+            newContent,
+            (event) => {
+              if (event.type === "init") {
+                realAssistantMessageId = event.assistantMessage.id;
+                set((state) => ({
+                  activeThreadId: event.chat.id,
+                  threads: mergeThread(state.threads, event.chat),
+                  messagesByChatId: {
+                    ...state.messagesByChatId,
+                    [event.chat.id]: [
+                      ...prunedMessages,
+                      { ...event.assistantMessage, content: "" },
+                    ],
+                  },
+                  loadedChatIds: state.loadedChatIds.includes(event.chat.id)
+                    ? state.loadedChatIds
+                    : [...state.loadedChatIds, event.chat.id],
+                }));
+                useSyncStore.getState().setChatCount(get().threads.length);
+              } else if (event.type === "chunk" && realAssistantMessageId) {
+                streamingContent += event.content;
+                const chatId = activeThreadId;
+                const assistantMsgId = realAssistantMessageId;
+                const content = streamingContent;
+                set((state) => ({
+                  messagesByChatId: {
+                    ...state.messagesByChatId,
+                    [chatId]: (state.messagesByChatId[chatId] ?? []).map((m) =>
+                      m.id === assistantMsgId ? { ...m, content } : m
+                    ),
+                  },
+                }));
+              } else if (event.type === "done") {
+                pendingStopRestoreText = null;
+                set({ status: "idle", errorMessage: null });
+                resolveActiveSend = null;
+                useSyncStore.getState().markSynced();
+                resolve();
+              } else if (event.type === "error") {
+                pendingStopRestoreText = null;
+                resolveActiveSend = null;
+                reject(new Error(event.message || "Edit stream failed"));
+              }
+            },
+            (error) => {
+              const errorMessage = handleChatError(error);
+              set({ status: "error" as const, errorMessage });
+              useSyncStore.getState().markError(errorMessage);
+              pendingStopRestoreText = null;
+              resolveActiveSend = null;
+              reject(error);
+            },
+          );
+          currentAbortFn = abortCloud;
+        });
+      },
+      stopGeneration: () => {
+        const restoreText = pendingStopRestoreText ?? "";
+        pendingStopRestoreText = null;
+        const threadId = get().activeThreadId;
+
+        if (currentAbortFn) {
+          currentAbortFn();
+          currentAbortFn = null;
+        }
+
+        set((state) => {
+          if (threadId) {
+            const existingMessages = state.messagesByChatId[threadId] ?? [];
+
+            return {
+              status: "idle",
+              errorMessage: null,
+              composerRestoreText: restoreText,
+              messagesByChatId: {
+                ...state.messagesByChatId,
+                [threadId]: removeLastUserAssistantExchange(existingMessages),
+              },
+            };
+          }
+
+          return {
+            status: "idle",
+            errorMessage: null,
+            composerRestoreText: restoreText,
+            draftMessages: removeLastUserAssistantExchange(state.draftMessages),
+          };
+        });
+
+        resolveActiveSend?.();
+        resolveActiveSend = null;
+        useSyncStore.getState().markSynced();
       },
       clearChatHistory: async () => {
         set({

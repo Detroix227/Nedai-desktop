@@ -137,7 +137,6 @@ function createWindow() {
   } else {
     // In production, load the built files
     mainWindow.loadFile(path.join(__dirname, 'web/dist/index.html'));
-    mainWindow.webContents.openDevTools();
   }
 
   // Ensure external links open in the default browser

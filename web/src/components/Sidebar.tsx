@@ -17,6 +17,7 @@ import {
 import { useChatStore } from "@/modules/chat/useChatStore";
 import { useUIStore } from "@/modules/ui/useUIStore";
 import { useAuthStore } from "@/modules/auth/useAuthStore";
+import { useConnectivityStore } from "@/modules/connectivity/useConnectivityStore";
 import { ChatItem } from "./ChatItem";
 import { NotificationBell } from "./NotificationBell";
 
@@ -63,6 +64,7 @@ export function Sidebar() {
   const location = useLocation();
   const { isSidebarCollapsed, toggleSidebar, setCurrentSection, setSidebarCollapsed, theme, toggleTheme } = useUIStore();
   const user = useAuthStore((state) => state.user);
+  const isOnline = useConnectivityStore((state) => state.isOnline);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleMobileNav = () => {
@@ -196,7 +198,12 @@ export function Sidebar() {
             {/* Logo and Menu Header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
-                <img src="/nedai-symbol-v3.png" alt="NedAI" className="w-8 h-8 object-contain" />
+                <div className="relative">
+                  <img src="/nedai-symbol-v3.png" alt="NedAI" className="w-8 h-8 object-contain" />
+                  <span className={`absolute -bottom-0.5 -right-0.5 block h-2 w-2 rounded-full ring-1 ring-white dark:ring-slate-900 ${
+                    isOnline ? 'bg-emerald-500' : 'bg-rose-500'
+                  }`} />
+                </div>
                 <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">NedAI</span>
               </div>
               <button

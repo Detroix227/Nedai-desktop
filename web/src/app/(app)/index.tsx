@@ -87,6 +87,9 @@ export default function HomeScreen() {
   );
   const loadChats = useChatStore((state) => state.loadChats);
   const sendMessage = useChatStore((state) => state.sendMessage);
+  const stopGeneration = useChatStore((state) => state.stopGeneration);
+  const composerRestoreText = useChatStore((state) => state.composerRestoreText);
+  const clearComposerRestore = useChatStore((state) => state.clearComposerRestore);
   
   const documents = useDocumentStore((state) => state.documents);
   const loadDocuments = useDocumentStore((state) => state.loadDocuments);
@@ -138,6 +141,13 @@ export default function HomeScreen() {
   useEffect(() => {
     void loadChats();
   }, [loadChats]);
+
+  useEffect(() => {
+    if (composerRestoreText) {
+      setComposerText(composerRestoreText);
+      clearComposerRestore();
+    }
+  }, [composerRestoreText, clearComposerRestore]);
 
   useEffect(() => {
     if (!token) {
@@ -361,7 +371,7 @@ export default function HomeScreen() {
     helperState?.text ??
     errorMessage ??
     (isSending
-      ? "NedAI is replying..."
+      ? "Thinking"
       : isLoading
         ? "Syncing chats from the server..."
         : "Type @ to tag an uploaded document.");
@@ -377,9 +387,9 @@ export default function HomeScreen() {
     >
       <div className="flex flex-col h-full w-full max-w-4xl mx-auto overflow-hidden relative">
         {/* Scrollable message area */}
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="flex-1 overflow-y-auto min-h-0 scroll-smooth">
           {hasConversation ? (
-            <ChatMessageList messages={messages} />
+            <ChatMessageList messages={messages} isStreaming={isSending} />
           ) : isLoading && threads.length > 0 ? (
             <div className="h-full flex items-center justify-center">
               <span className="text-slate-500 dark:text-slate-400 font-medium text-base flex flex-row items-center gap-2">
@@ -416,12 +426,14 @@ export default function HomeScreen() {
 
         <div className="p-4 md:px-8 md:pb-8 shrink-0 relative">
           <ChatInput
-            disabled={isSending}
+            disabled={isLoading}
+            isGenerating={isSending}
             value={composerText}
             onChangeText={setComposerDraft}
             onAttach={() => fileInputRef.current?.click()}
             onAttachImage={() => imageInputRef.current?.click()}
             onSend={handleSend}
+            onStop={stopGeneration}
             helperText={helperText}
             helperTone={helperTone}
             selectedDocument={selectedDocument}

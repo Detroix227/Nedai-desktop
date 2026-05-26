@@ -20,20 +20,17 @@ export const useConnectivityStore = create<ConnectivityState>((set) => ({
 
     set({ isChecking: true });
     try {
-      // 2. Try a simple HEAD request to the server (faster than GET)
+      // 2. Try a simple health check GET request to the server
       const response = await fetch(`${import.meta.env.VITE_SERVER_ORIGIN}/health`, {
-        method: 'HEAD',
+        method: 'GET',
         cache: 'no-store',
-        // Short timeout: if the server is so slow it doesn't respond in 5s, 
-        // we might as well use local mode on desktop, but on web we'll stay optimistic.
         signal: AbortSignal.timeout(5000), 
       });
       
       set({ isOnline: response.ok, lastChecked: new Date(), isChecking: false });
     } catch (error) {
-      // 3. Fallback: If fetch fails but navigator says we're online,
-      // stay online — respect the user's brain mode toggle instead of auto-switching.
-      set({ isOnline: true, lastChecked: new Date(), isChecking: false });
+      // 3. If fetch fails (e.g. server is down or network dns resolution fails), user is offline
+      set({ isOnline: false, lastChecked: new Date(), isChecking: false });
     }
   },
 }));

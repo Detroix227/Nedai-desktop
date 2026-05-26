@@ -4,7 +4,7 @@ import { stream } from "hono/streaming";
 import type { AppBindings } from "@/middleware/auth";
 import { getJwtPayload } from "@/middleware/auth";
 import ChatService from "@/api/v1/services/chat.service";
-import { chatParamsSchema } from "@/api/v1/app/schemas/chat.schema";
+import { chatParamsSchema, messageParamsSchema, editMessageSchema } from "@/api/v1/app/schemas/chat.schema";
 import respond from "@/utils/response.util";
 
 export async function listChats(c: Context<AppBindings>) {
@@ -110,4 +110,50 @@ export async function pinChat(c: Context<AppBindings>) {
   const chat = await ChatService.pinChat(payload.sub, params.chatId, body.isPinned);
 
   return respond(c, 200, "Chat pin status updated", { chat });
+}
+
+export async function editMessage(c: Context<AppBindings>) {
+  const payload = getJwtPayload(c);
+  const params = messageParamsSchema.parse(c.req.param());
+  const rawBody = await c.req.json();
+  const body = editMessageSchema.parse(rawBody);
+
+  let result: Awaited<ReturnType<typeof ChatService.editMessage>>;
+  try {
+    result = await ChatService.editMessage(payload.sub, params.messageId, body.content);
+  } catch (error: any) {
+    console.error("[editMessage] editMessage failed:", error?.message ?? error);
+    throw error;
+  }
+
+  c.header("Content-Type", "text/event-stream");
+  c.header("Cache-Control", "no-cache");
+  c.header("Connection", "keep-alive");
+
+  return stream(c, async (s) => {
+    try {
+      const initialData = JSON.stringify({
+        type: "init",
+        chat: result.chat,
+        userMessage: result.userMessage,
+        assistantMessage: result.assistantMessage,
+        contextUsage: result.contextUsage,
+      });
+      await s.write(`data: ${initialData}\n\n`);
+
+      if (result.stream) {
+        for await (const chunk of result.stream) {
+          const data = JSON.stringify({ type: "chunk", content: chunk });
+          await s.write(`data: ${data}\n\n`);
+        }
+      }
+
+      const doneData = JSON.stringify({ type: "done" });
+      await s.write(`data: ${doneData}\n\n`);
+    } catch (error: any) {
+      console.error("[editMessage] stream error:", error?.message ?? error);
+      const errorData = JSON.stringify({ type: "error", message: "Streaming failed" });
+      await s.write(`data: ${errorData}\n\n`).catch(() => {});
+    }
+  });
 }

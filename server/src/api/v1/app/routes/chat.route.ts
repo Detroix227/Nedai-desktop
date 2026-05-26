@@ -5,6 +5,7 @@ import { requireAuth } from "@/middleware/auth";
 import {
   clearChats,
   deleteChat,
+  editMessage,
   getChatMessages,
   listChats,
   pinChat,
@@ -24,5 +25,6 @@ router.patch("/:chatId", renameChat);
 router.patch("/:chatId/pin", pinChat);
 router.post("/messages", sendMessage);
 router.post("/messages/stream", streamMessage);
+router.post("/messages/:messageId/edit", editMessage);
 
 export default router;

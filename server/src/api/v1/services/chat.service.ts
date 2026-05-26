@@ -567,7 +567,6 @@ RULES:
         model: this.chatModel,
         generationConfig: {
           temperature: 0.2,
-          maxOutputTokens: 800,
         },
       });
 
@@ -665,6 +664,49 @@ RULES:
     });
 
     return serializeChat(chat);
+  }
+
+  public async editMessage(userId: string, messageId: string, newContent: string) {
+    // 1. Fetch the message and verify ownership via the chat
+    const message = await this.prisma.message.findFirst({
+      where: { id: messageId },
+      include: {
+        chat: { select: { id: true, userId: true, title: true } },
+        document: { select: { id: true, title: true, sourceType: true } },
+      },
+    });
+
+    if (!message || message.chat.userId !== userId) {
+      throw new ApiError(404, "Message not found");
+    }
+
+    if (message.role !== "USER") {
+      throw new ApiError(400, "Only user messages can be edited");
+    }
+
+    // 2. Delete all messages that came after this one in the same chat
+    await this.prisma.message.deleteMany({
+      where: {
+        chatId: message.chatId,
+        createdAt: { gt: message.createdAt },
+      },
+    });
+
+    // 3. Update the edited message content
+    await this.prisma.message.update({
+      where: { id: messageId },
+      data: { content: newContent },
+    });
+
+    // 4. Re-run the AI pipeline using the same sendMessage logic
+    //    Pass chatId so history is picked up correctly
+    const result = await this.sendMessage(userId, {
+      chatId: message.chatId,
+      content: newContent,
+      documentId: message.documentId ?? undefined,
+    });
+
+    return result;
   }
 
   private async getOwnedChat(userId: string, chatId: string) {
